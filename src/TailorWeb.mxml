@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark"  
+			   xmlns:components="com.cognizant.tailor.components.*"
+			   width="440" height="420" creationComplete="creationCompleteHandler(event)">
+	<fx:Script>
+		<![CDATA[
+			import com.cognizant.tailor.components.ILayer;
+			import com.cognizant.tailor.components.ShapeLayer;
+			import com.cognizant.tailor.vo.ShapeObj;
+			
+			import mx.collections.ArrayCollection;
+			import mx.events.FlexEvent;
+			
+			import spark.events.IndexChangeEvent;
+			[Embed(source="shirt.png")]
+			private var shirt:Class;
+			private var sLayer:ILayer;
+			private var shirtShape:ShapeObj
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				sLayer = new ShapeLayer();
+				shirtShape = new ShapeObj();
+				shirtShape.name= 'Shirt';
+				var shirtPoints:ArrayCollection = new ArrayCollection();
+				shirtPoints.addItem({X:"13",Y:"342"});
+				shirtPoints.addItem({X:"18",Y:"307"});
+				shirtPoints.addItem({X:"22",Y:"259"});
+				shirtPoints.addItem({X:"29",Y:"234"});
+				shirtPoints.addItem({X:"37",Y:"195"});
+				shirtPoints.addItem({X:"45",Y:"133"});
+				shirtPoints.addItem({X:"51",Y:"92"});
+				shirtPoints.addItem({X:"70",Y:"73"});
+				shirtPoints.addItem({X:"116",Y:"48"});
+				shirtPoints.addItem({X:"121",Y:"23"});
+				shirtPoints.addItem({X:"150",Y:"10"});
+				shirtPoints.addItem({X:"178",Y:"10"});
+				shirtPoints.addItem({X:"186",Y:"14"});
+				shirtPoints.addItem({X:"196",Y:"36"});
+				shirtPoints.addItem({X:"234",Y:"55"});
+				shirtPoints.addItem({X:"261",Y:"67"});
+				shirtPoints.addItem({X:"277",Y:"76"});
+				shirtPoints.addItem({X:"292",Y:"110"}); 
+				shirtPoints.addItem({X:"316",Y:"186"});
+				shirtPoints.addItem({X:"315",Y:"242"});
+				shirtPoints.addItem({X:"284",Y:"265"});
+				shirtPoints.addItem({X:"279",Y:"270"});
+				shirtPoints.addItem({X:"250",Y:"290"});
+				shirtPoints.addItem({X:"251",Y:"333"});
+				shirtPoints.addItem({X:"254",Y:"370"});
+				shirtPoints.addItem({X:"255",Y:"389"});
+				shirtPoints.addItem({X:"250",Y:"395"});
+				shirtPoints.addItem({X:"245",Y:"394"});
+				shirtPoints.addItem({X:"237",Y:"406"});
+				shirtPoints.addItem({X:"224",Y:"415"});
+				shirtPoints.addItem({X:"200",Y:"419"});
+				shirtPoints.addItem({X:"126",Y:"404"});
+				shirtPoints.addItem({X:"95",Y:"389"});
+				shirtPoints.addItem({X:"85",Y:"368"});
+				shirtPoints.addItem({X:"92",Y:"292"});
+				shirtPoints.addItem({X:"86",Y:"209"});
+				shirtPoints.addItem({X:"71",Y:"264"});
+				shirtPoints.addItem({X:"52",Y:"310"});
+				shirtPoints.addItem({X:"47",Y:"348"});
+				shirtShape.fill(shirtPoints);
+				content.imageObj = shirt;
+				content.addContainerShapes(sLayer,shirtShape);
+				shirtShape.alpha = 1;
+				sLayer.activeShape = true;
+			}
+			
+			protected function clickHandler(event:MouseEvent):void
+			{
+				ShapeLayer(sLayer).showAdjustArea();
+			}
+			
+			protected function changeHandler(event:IndexChangeEvent):void
+			{
+				shirtShape.color =colorChooser.selectedItem
+				sLayer.currentShape = shirtShape;
+				ShapeLayer(sLayer).drawShape();
+			}
+			
+		]]>
+	</fx:Script>
+	<s:HGroup>
+		<s:VGroup>
+			<components:SparkColorPicker id="colorChooser" skinClass="com.cognizant.tailor.components.ColorPickerListSkin" change="changeHandler(event)"/>
+			<s:Button label="Adjust" click="clickHandler(event)" visible="false"/>
+		</s:VGroup>
+		<components:MaskHolder id="content"/>
+	</s:HGroup>
+</s:Application>

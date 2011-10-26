@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:components="com.cognizant.tailor.components.*"
+		 clipAndEnableScrolling="true" >
+	<fx:Script>
+		<![CDATA[
+			import com.cognizant.tailor.vo.ShapeObj;
+			[Bindable]
+			public var maskWidth:int;
+			private var _imageObj:Object
+			public var contArr:Array = [];
+			private var shapeArr:Array;
+			public var currentScale:Number;
+			public var defScale:Number;
+			public var originX : Number;
+			public var originY : Number;
+			private var affineTransform:Matrix=new Matrix();
+			public var zoomVal:Number;
+			public function get imageObj():Object
+			{
+				return _imageObj;
+			}
+			
+			public function set imageObj(value:Object):void
+			{
+				_imageObj = value;
+				holder.imageSource = value;
+				img.source = value;
+			}
+			
+			public function getAllActiveShapes(active:Boolean=true):Array
+			{
+				shapeArr =[];
+				for each( var slayer:ShapeLayer in contArr){ 
+					if(active){
+						if(slayer.activeShape){
+							shapeArr.push(slayer);
+						}
+					}else{
+						shapeArr.push(slayer);
+					}
+				}
+				return shapeArr;
+			}  
+			
+			public function getAllColoredShapes():Array
+			{
+				shapeArr =[];
+				for each( var slayer:ShapeLayer in contArr){ 
+					if(slayer.coloredShape){
+						shapeArr.push(slayer);
+					}
+				}
+				return shapeArr;
+			}  
+			
+			public function removeAllShapes():void{ 
+				while(holder.spriteContainer.numChildren>0){
+					for (var i:int=0; i<holder.spriteContainer.numChildren; i++){
+						var obj:Object = holder.spriteContainer.getChildAt(i);
+						holder.spriteContainer.removeChild(obj as DisplayObject);
+					}
+				}
+				contArr= [];
+			}
+			
+			public function addContainerShapes(sLayer:ILayer,shape:ShapeObj):void{
+				sLayer.currentShape =shape;
+				holder.spriteContainer.addChild(sLayer as DisplayObject);
+				contArr.push(sLayer);
+			}
+			
+			public function onZoom(zoom:Number,def:Number):void
+			{
+				defScale=def;
+				alignImage(true);
+				if(isNaN(zoom )){zoom=1}
+				zoomVal = zoom;
+				imgGrp.scaleX = zoomVal;
+				imgGrp.scaleY = zoomVal;
+				changeImage.scaleX = defScale;
+				changeImage.scaleY = defScale; 
+			}
+			
+			public function onPan(event:MouseEvent):void
+			{
+				var transMatrix:Matrix = imgGrp.transform.matrix;
+				var L:Number = -((width * transMatrix.a) - ((width * transMatrix.a)/10));
+				var T:Number = -((height * transMatrix.a) - ((height* transMatrix.a)/10));
+				var R:Number = parent.width + ((width * transMatrix.a) / 10) * 8;
+				var B:Number = parent.height + ((height * transMatrix.a) / 10) * 8;
+				imgGrp.startDrag(false,new Rectangle(L,T,R,B));
+				if(event.type == MouseEvent.MOUSE_UP)
+				{
+					stopDrag(); 
+				}
+			}
+			
+			public function resetZoom() : void
+			{
+				onZoom(currentScale,defScale);
+			}
+			
+			private	function alignImage(align:Boolean) : void
+			{
+				if(align){
+					imgGrp.verticalCenter = 0;
+					imgGrp.horizontalCenter = 0;
+				}else{
+					imgGrp.verticalCenter = null;
+					imgGrp.horizontalCenter = null;
+				}
+			} 
+			public	function onRegionZoom(ypos:int,zoomLevel:int=3) : void
+			{
+				onZoom(zoomLevel,defScale);
+				alignImage(false);
+				imgGrp.horizontalCenter = 0;
+				imgGrp.x = ((this.width/2) - ((imgGrp.width* imgGrp.scaleX)/2));
+				imgGrp.y = -ypos* imgGrp.scaleX;
+			}
+			
+			public	function onMouseWheel( event : MouseEvent =null) : void
+			{
+				if(event){
+					alignImage(true);
+					originX = mouseX;
+					originY = mouseY;
+				} 
+				if( event.delta > 0 )
+				{ 
+					if((currentScale+5)>imgGrp.scaleX){
+						scaleAt(6/5, originX, originY );
+					}  
+				}
+				else
+				{
+					if(currentScale<imgGrp.scaleX){
+						scaleAt(5/6, originX, originY );
+					}  
+				}  
+				zoomVal = imgGrp.scaleX; 
+			}
+			
+			private function scaleAt( scale : Number, originX : Number, originY : Number, mode:String = "Self") : void
+			{
+				affineTransform = imgGrp.transform.matrix;
+				affineTransform.translate( -originX, -originY );
+				affineTransform.scale( scale, scale );
+				affineTransform.translate( originX, originY );
+				imgGrp.transform.matrix = affineTransform;
+			}
+			
+			public function maskWidthHandler(event:Event):void
+			{ 
+				var offset:int = -5;
+				if(event.target.value>holder.width/2 ){
+					offset =-5;
+				}
+				if(event.target.value<holder.width/2 ){
+					offset =-4;
+				}
+				maskWidth = event.target.value+offset;
+			}
+		]]>
+	</fx:Script>
+	<s:HGroup id="imgGrp" verticalCenter="0" horizontalCenter="0">
+		<s:Group verticalCenter="0" horizontalCenter="0">
+			<components:ImageHolder id="holder" />
+			<s:Group>
+				<s:mask>
+					<s:Group>
+						<s:Rect id="maskRect" width="{maskWidth}" height="{holder.height}">
+							<s:fill>
+								<s:SolidColor/>
+							</s:fill>
+						</s:Rect>
+					</s:Group>
+				</s:mask>
+				<s:Image id="img" smooth="true"/>
+			</s:Group> 
+			<s:HSlider id="changeImage" visible="false" styleName="maskSlider"
+					   change="{maskWidthHandler(event)}"  bottom="50" height="100%" buttonMode="true"
+					   minimum="0" maximum="{imgGrp.width}" snapInterval="1" width="100%"/>
+		</s:Group>
+	</s:HGroup>
+</s:Group>
